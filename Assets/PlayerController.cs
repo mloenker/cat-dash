@@ -20,8 +20,15 @@ public class PlayerController : MonoBehaviour
     private bool isJumping = false;
     private float jumpBufferCount;  // Counter to keep track of how long since the jump button was pressed
     private bool grounded;
+    private string currentPlatform;
 
     public Sprite[] jumpSprites;
+
+    [SerializeField] private AudioSource snowJumpSound;
+    [SerializeField] private AudioSource snowLandSound;
+    [SerializeField] private AudioSource iceJumpSound;
+    [SerializeField] private AudioSource iceLandSound;
+    [SerializeField] private AudioSource shroomSound;
 
     // Start is called before the first frame update
     void Start()
@@ -48,6 +55,13 @@ public class PlayerController : MonoBehaviour
             jumpBufferCount = 0;  // Reset the buffer count
             animator.SetBool("isJumping", true);
             rigidBody.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse);
+
+            if (currentPlatform == "default"){
+                snowJumpSound.Play();
+            }else if (currentPlatform == "ice"){
+                iceJumpSound.Play();
+            }
+
         }
 
         if (grounded && rigidBody.velocity.y <= 0)
@@ -107,18 +121,34 @@ public class PlayerController : MonoBehaviour
             transform.rotation = Quaternion.Euler(0, 0, 0);
         }
 
+        // ### Sounds
+
+
+
     }
 
     private void OnCollisionEnter2D(Collision2D collision){
-        Debug.Log(collision.gameObject.name);
+        //Debug.Log(collision.gameObject.name);
         if(collision.gameObject.layer == 3){
             grounded = true;
+
+            if(collision.gameObject.name.Contains("Default")){
+                snowLandSound.Play();
+                currentPlatform = "default";
+            }else if(collision.gameObject.name.Contains("Ice")){
+                currentPlatform = "ice";
+                iceLandSound.Play();
+            }else if(collision.gameObject.name.Contains("Bouncy")){
+                currentPlatform = "bouncy";
+                shroomSound.Play();
+            }
         }
 
         if(collision.gameObject.name.Contains("Bouncy")){
             rigidBody.AddForce(new Vector2(0, jumpForce*1.8f), ForceMode2D.Impulse);
             Vector3 velocity = new Vector3(rigidBody.velocity.x, Mathf.Min(rigidBody.velocity.y, jumpForce*1.8f), 0);
             rigidBody.velocity = velocity;
+            shroomSound.Play();
         }
 
     }
@@ -126,6 +156,7 @@ public class PlayerController : MonoBehaviour
     private void OnCollisionExit2D(Collision2D collision){
         if(collision.gameObject.layer == 3){
             grounded = false;
+            currentPlatform = "none";
         }
     }
 
@@ -134,36 +165,6 @@ public class PlayerController : MonoBehaviour
     private void FixedUpdate()
     {
         
-
-        var ground = Physics2D.Raycast(transform.position, -Vector2.up, 1f, groundLayer.value);
-        float halfPlayerWidth = GetComponent<Collider2D>().bounds.extents.x+0.5f;
-        if (ground){
-            ground = Physics2D.Raycast(transform.position + new Vector3(-halfPlayerWidth, 0, 0), -Vector2.up, 2f, groundLayer.value);
-        }
-        if (ground){
-            ground = Physics2D.Raycast(transform.position + new Vector3(halfPlayerWidth, 0, 0), -Vector2.up, 2f, groundLayer.value);
-        }
-
-
-        if (ground)
-        {
-            //Debug.Log(ground.collider.gameObject.name+" | "+ground.distance);
-        }
-
-        // ### Execute movement code ###
-
-        //Jumping
-
-
-
-        if (grounded && Input.GetButtonDown("Jump"))
-        {   
-            Vector3 velocity = new Vector3(rigidBody.velocity.x, rigidBody.velocity.y, 0);
-            rigidBody.velocity = velocity;
-        }
-
-
-
         if( Input.GetAxis("Horizontal")!=0){
             // Acceleration
             if (Mathf.Abs(rigidBody.velocity.x + movement*acceleration)<maxSpeed)
@@ -176,9 +177,9 @@ public class PlayerController : MonoBehaviour
                     rigidBody.velocity = velocity;
                 }
             }
-            // Decceleration on different platforms
+            // Decceleration on different platforms ground.collider.gameObject.name.Contains("Default")
         }else if (grounded){
-            if (ground.collider.gameObject.name.Contains("Default")){
+            if (currentPlatform == "default"){
                 if(rigidBody.velocity.x>0){
                     Vector3 velocity = new Vector3(Mathf.Min(0, rigidBody.velocity.x-acceleration), rigidBody.velocity.y, 0);
                     rigidBody.velocity = velocity;
@@ -186,6 +187,7 @@ public class PlayerController : MonoBehaviour
                     Vector3 velocity = new Vector3(Mathf.Max(0, rigidBody.velocity.x+acceleration), rigidBody.velocity.y, 0);
                     rigidBody.velocity = velocity;
                 }
+
             }
         }
 
