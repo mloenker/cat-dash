@@ -21,6 +21,9 @@ public class PlayerController : MonoBehaviour
     private float jumpBufferCount;  // Counter to keep track of how long since the jump button was pressed
     private bool grounded;
     private string currentPlatform;
+    private GameObject currentPlatformObject;
+    private bool inDashZone = false;
+    private GameObject currentDashPoint;
 
     public Sprite[] jumpSprites;
 
@@ -29,6 +32,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private AudioSource iceJumpSound;
     [SerializeField] private AudioSource iceLandSound;
     [SerializeField] private AudioSource shroomSound;
+    [SerializeField] private AudioSource meowSound;
 
     // Start is called before the first frame update
     void Start()
@@ -49,12 +53,15 @@ public class PlayerController : MonoBehaviour
             jumpBufferCount = Time.time + jumpBufferLength;  // Set the jump buffer count when the jump button is pressed
         }
 
-        if (jumpBufferCount > Time.time && grounded)
+        if (jumpBufferCount > Time.time && grounded && currentPlatform != "bouncy")
         {
             isJumping = true;
             jumpBufferCount = 0;  // Reset the buffer count
             animator.SetBool("isJumping", true);
+            Vector3 velocity = new Vector3(rigidBody.velocity.x, 0, 0);
+            rigidBody.velocity = velocity;
             rigidBody.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse);
+            Destroy(currentPlatformObject);
 
             if (currentPlatform == "default"){
                 snowJumpSound.Play();
@@ -109,7 +116,7 @@ public class PlayerController : MonoBehaviour
             }
             else if (rigidBody.velocity.y < 0)
             {
-                int spriteIndex = 2+(int)(Mathf.Abs(rigidBody.velocity.y) / 15f * 3);
+                int spriteIndex = 2+(int)(Mathf.Abs(rigidBody.velocity.y) / 15f * 2);
                 GetComponent<SpriteRenderer>().sprite = jumpSprites[spriteIndex];
             }
 
@@ -121,7 +128,14 @@ public class PlayerController : MonoBehaviour
             transform.rotation = Quaternion.Euler(0, 0, 0);
         }
 
-        // ### Sounds
+        // Dash
+        if (Input.GetButtonDown("Jump") && inDashZone){
+            meowSound.Play();
+            Vector3 velocity = new Vector3(rigidBody.velocity.x, 0, 0);
+            rigidBody.velocity = velocity;
+            rigidBody.AddForce(new Vector2((currentDashPoint.transform.position.x - transform.position.x)*2, jumpForce*1.5f), ForceMode2D.Impulse);
+            Destroy(currentDashPoint);
+        }
 
 
 
@@ -131,7 +145,7 @@ public class PlayerController : MonoBehaviour
         //Debug.Log(collision.gameObject.name);
         if(collision.gameObject.layer == 3){
             grounded = true;
-
+            currentPlatformObject = collision.gameObject;
             if(collision.gameObject.name.Contains("Default")){
                 snowLandSound.Play();
                 currentPlatform = "default";
@@ -145,9 +159,11 @@ public class PlayerController : MonoBehaviour
         }
 
         if(collision.gameObject.name.Contains("Bouncy")){
-            rigidBody.AddForce(new Vector2(0, jumpForce*1.8f), ForceMode2D.Impulse);
-            Vector3 velocity = new Vector3(rigidBody.velocity.x, Mathf.Min(rigidBody.velocity.y, jumpForce*1.8f), 0);
+            Vector3 velocity = new Vector3(rigidBody.velocity.x, 0, 0);
             rigidBody.velocity = velocity;
+            rigidBody.AddForce(new Vector2(0, jumpForce*1.8f), ForceMode2D.Impulse);
+            //Vector3 velocity = new Vector3(rigidBody.velocity.x, Mathf.Min(rigidBody.velocity.y, jumpForce*1.8f), 0);
+            //rigidBody.velocity = velocity;
             shroomSound.Play();
         }
 
@@ -157,6 +173,20 @@ public class PlayerController : MonoBehaviour
         if(collision.gameObject.layer == 3){
             grounded = false;
             currentPlatform = "none";
+        }
+    }
+
+    // Test if in range of dash point
+    private void OnTriggerEnter2D(Collider2D other){
+        if(other.gameObject.tag == "DashPoint"){
+            inDashZone = true;
+            currentDashPoint = other.gameObject;
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D other){
+        if(other.gameObject.tag == "DashPoint"){
+            inDashZone = false;
         }
     }
 
@@ -190,8 +220,7 @@ public class PlayerController : MonoBehaviour
 
             }
         }
-
-
-        //grounded = false;
     }
+
+
 }

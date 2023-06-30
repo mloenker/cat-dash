@@ -5,6 +5,7 @@ public class PlatformSpawner : MonoBehaviour
     public GameObject platformDefaultPrefab;
     public GameObject platformIcePrefab;
     public GameObject platformBouncyPrefab;
+    public GameObject platformDashPointPrefab;
     public float spawnWidth = 7f;
     public float spawnNegativeZone = 3f;
     public Vector3 spawnPosition = new Vector3(0, 0, 0);
@@ -54,8 +55,10 @@ public class PlatformSpawner : MonoBehaviour
             int randomNumber = Random.Range(0,100);
             if(randomNumber <=10){
                 Instantiate(platformIcePrefab, spawnPosition, Quaternion.identity);
-            }else if(randomNumber<=40) {
+            }else if(randomNumber<=20) {
                 Instantiate(platformBouncyPrefab, spawnPosition, Quaternion.identity);
+            }else if(randomNumber<=30) {
+                Instantiate(platformDashPointPrefab, spawnPosition, Quaternion.identity);
             }else{
                 Instantiate(platformDefaultPrefab, spawnPosition, Quaternion.identity);
             }
