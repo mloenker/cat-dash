@@ -73,6 +73,14 @@ public class PlayerController : MonoBehaviour
 
         if (isJumping)
         {
+
+            if (rigidBody.velocity.y != 0)
+            {
+                transform.rotation = Quaternion.Euler(0, 0, 20 * Mathf.Sign(transform.localScale.x) * (rigidBody.velocity.y/jumpForce));
+
+            }
+
+            /*
             if (rigidBody.velocity.y > 0)
             {
                 // Rotate the player slightly while rising
@@ -82,7 +90,7 @@ public class PlayerController : MonoBehaviour
             {
                 // Rotate the player slightly while falling
                 transform.rotation = Quaternion.Euler(0, 0, -20 * Mathf.Sign(transform.localScale.x));
-            }
+            }*/
         }
         else
         {
