@@ -117,6 +117,8 @@ public class PlayerController : MonoBehaviour
 
         if(collision.gameObject.name.Contains("Bouncy")){
             rigidBody.AddForce(new Vector2(0, jumpForce*1.8f), ForceMode2D.Impulse);
+            Vector3 velocity = new Vector3(rigidBody.velocity.x, Mathf.Min(rigidBody.velocity.y, jumpForce*1.8f), 0);
+            rigidBody.velocity = velocity;
         }
 
     }
