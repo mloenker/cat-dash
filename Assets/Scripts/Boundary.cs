@@ -19,7 +19,7 @@ public class Boundary : MonoBehaviour
         if (other.tag == "Player" && cooldown <= 0)
         {
             // Update the cooldown
-            cooldown = 3f; // set this to the duration of your cooldown
+            cooldown = 1.5f; // set this to the duration of your cooldown
 
             // Switch the x position based on which boundary was hit
             float newX = transform.position.x < 0 ? 10.0f : -10.0f;

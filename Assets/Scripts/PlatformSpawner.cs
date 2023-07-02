@@ -6,22 +6,18 @@ public class PlatformSpawner : MonoBehaviour
     public GameObject platformIcePrefab;
     public GameObject platformBouncyPrefab;
     public GameObject platformDashPointPrefab;
-    public float spawnWidth = 7f;
-    public float spawnNegativeZone = 3f;
-    public Vector3 spawnPosition = new Vector3(0, 0, 0);
+    public float spawnWidth = 7f; // Max distance in both x directions
+    public float spawnNegativeZone = 3f; // No-spawn zone around last platform
+    public Vector3 spawnPosition = new Vector3(0, 0, -1);
     public Transform player;
 
 
-    // Start is called before the first frame update
     void Start()
     {
-        // Platform Random Spawn Code
-        //Vector3 spawnPosition = new Vector3(0, 0, 0);
         spawnNewBatch();
-
     }
 
-    // Update is called once per frame
+    // Spawn new platforms if player is close to end
     void Update()
     {
         if(spawnPosition.y-player.position.y<10.0f){
@@ -29,6 +25,7 @@ public class PlatformSpawner : MonoBehaviour
         }
     }
 
+    // Spawn 20 new platforms
     void spawnNewBatch(){
          for (int i = 0; i<20; i++)
         {
@@ -52,7 +49,7 @@ public class PlatformSpawner : MonoBehaviour
             }
 
             // Different platform types
-            int randomNumber = Random.Range(0,100);
+            int randomNumber = Random.Range(0,100); // weighting
             if(randomNumber <=10){
                 Instantiate(platformIcePrefab, spawnPosition, Quaternion.identity);
             }else if(randomNumber<=20) {

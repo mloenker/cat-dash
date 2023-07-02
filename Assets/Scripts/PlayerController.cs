@@ -14,7 +14,6 @@ public class PlayerController : MonoBehaviour
     public GameOverScreen gameOverScreen;
 
     private float movement = 0f;
-    private float groundCheckRadius = 0.2f;
     private Rigidbody2D rigidBody;
     private Animator animator;
     private BoxCollider2D collider;
@@ -25,11 +24,10 @@ public class PlayerController : MonoBehaviour
     private GameObject currentPlatformObject;
     private bool inDashZone = false;
     private GameObject currentDashPoint;
-    private SpriteRenderer spriteRenderer;
 
+    private SpriteRenderer spriteRenderer;
     public Animator baseAnimatorController;
     public AnimatorOverrideController[] skinControllers;
-
 
     public Sprite[] jumpSprites_default;
     public Sprite[] jumpSprites_orange;
@@ -53,12 +51,13 @@ public class PlayerController : MonoBehaviour
         animator = GetComponent<Animator>();
         collider = GetComponent<BoxCollider2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-        rigidBody.gravityScale = 2.0f;
+        rigidBody.gravityScale = 2.0f; // higher gravity feels better
         LoadSkins();
         LoadSkin(PlayerPrefs.GetInt("SelectedSkin"));
         Debug.Log($"Loaded skin {PlayerPrefs.GetInt("SelectedSkin")}");
     }
 
+    // Load all skin sprites
     void LoadSkins() {
     for (int i = 1; i <= 3; i++) {
         string path = $"Sprites/Cats/Cat-{i}/";
@@ -73,10 +72,11 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // Activate skin (skinIndex 0-2)
     public void LoadSkin(int skinIndex) {
         if (skinIndex >= 0 && skinIndex < skinControllers.Length) {
             animator.runtimeAnimatorController = skinControllers[skinIndex];
-            switch(skinIndex){
+            switch(skinIndex){ // Jump sprites have to be set seperately
                 case 0:
                     jumpSprites = jumpSprites_orange;
                     break;
@@ -93,8 +93,6 @@ public class PlayerController : MonoBehaviour
     }
 
 
-
-    // Update is called once per frame
     void Update()
     {
         movement = Input.GetAxis("Horizontal");
@@ -104,15 +102,17 @@ public class PlayerController : MonoBehaviour
             jumpBufferCount = Time.time + jumpBufferLength;  // Set the jump buffer count when the jump button is pressed
         }
 
+        // Jump Code
         if (jumpBufferCount > Time.time && grounded && currentPlatform != "bouncy")
         {
             isJumping = true;
             jumpBufferCount = 0;  // Reset the buffer count
             animator.SetBool("isJumping", true);
-            Vector3 velocity = new Vector3(rigidBody.velocity.x, 0, 0);
+            Vector3 velocity = new Vector3(rigidBody.velocity.x, 0, 0); // reset velocity to stop exploits
             rigidBody.velocity = velocity;
-            rigidBody.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse);
+            rigidBody.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse); // Apply jump force
 
+            // Jump Sounds
             if (currentPlatform == "default"){
                 snowJumpSound.Play();
             }else if (currentPlatform == "ice"){
@@ -121,9 +121,10 @@ public class PlayerController : MonoBehaviour
 
         }
 
+        // Check if landed on platform
         if (grounded && rigidBody.velocity.y <= 0)
         {
-            animator.enabled = true;
+            animator.enabled = true; // Re-enable animator, after it has been disabled during jump
             isJumping = false;
             animator.SetBool("isJumping", false);
         }
@@ -152,6 +153,7 @@ public class PlayerController : MonoBehaviour
         if (isJumping)
         {
 
+            // Tilt player character based on velocity
             if (rigidBody.velocity.y != 0)
             {
                 transform.rotation = Quaternion.Euler(0, 0, 20 * Mathf.Sign(transform.localScale.x) * (rigidBody.velocity.y/jumpForce));
@@ -160,9 +162,9 @@ public class PlayerController : MonoBehaviour
 
             animator.enabled = false;
 
+            // Jump Animation
             if (rigidBody.velocity.y > 0)
             {
-                // use Mathf.Min to ensure the index never exceeds the length of jumpSprites[]
                 int spriteIndex = Mathf.Min((int)(rigidBody.velocity.y / 15f * 2), 3);
                 GetComponent<SpriteRenderer>().sprite = jumpSprites[spriteIndex];
             }
@@ -170,6 +172,13 @@ public class PlayerController : MonoBehaviour
             {
                 int spriteIndex = 2+(int)(Mathf.Abs(rigidBody.velocity.y) / 15f * 2);
                 GetComponent<SpriteRenderer>().sprite = jumpSprites[spriteIndex];
+            }
+
+            // Change Character rotation when jumping
+            if (rigidBody.velocity.x > 0){
+                transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
+            }else{
+                transform.localScale = new Vector3(-Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
             }
 
 
@@ -194,7 +203,7 @@ public class PlayerController : MonoBehaviour
         Vector3 viewportPos = Camera.main.WorldToViewportPoint(transform.position);
 
         // Check if the player is outside the viewport
-        if (viewportPos.x < 0 || viewportPos.x > 1 || viewportPos.y < 0 || viewportPos.y > 1)
+        if (viewportPos.y < 0 || viewportPos.y > 1)
         {
             // If the player is outside the viewport, trigger the Game Over
             gameOverScreen.GameOver();
@@ -204,8 +213,9 @@ public class PlayerController : MonoBehaviour
 
     }
 
+
+    // Trigger on contact with platform
     private void OnCollisionEnter2D(Collision2D collision){
-        //Debug.Log(collision.gameObject.name);
         if(collision.gameObject.layer == 3){
             grounded = true;
             currentPlatformObject = collision.gameObject;
@@ -221,17 +231,17 @@ public class PlayerController : MonoBehaviour
             }
         }
 
+        // Apply bounce effect when in contact with bouncy platform
         if(collision.gameObject.name.Contains("Bouncy")){
             Vector3 velocity = new Vector3(rigidBody.velocity.x, 0, 0);
             rigidBody.velocity = velocity;
             rigidBody.AddForce(new Vector2(0, jumpForce*1.8f), ForceMode2D.Impulse);
-            //Vector3 velocity = new Vector3(rigidBody.velocity.x, Mathf.Min(rigidBody.velocity.y, jumpForce*1.8f), 0);
-            //rigidBody.velocity = velocity;
             shroomSound.Play();
         }
 
     }
 
+    // Leave platform
     private void OnCollisionExit2D(Collision2D collision){
         if(collision.gameObject.layer == 3){
             grounded = false;
@@ -247,6 +257,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // Exit dash point
     private void OnTriggerExit2D(Collider2D other){
         if(other.gameObject.tag == "DashPoint"){
             inDashZone = false;
@@ -257,7 +268,7 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        
+        // Movement calculation
         if( Input.GetAxis("Horizontal")!=0){
             // Acceleration
             if (Mathf.Abs(rigidBody.velocity.x + movement*acceleration)<maxSpeed)
@@ -270,7 +281,7 @@ public class PlayerController : MonoBehaviour
                     rigidBody.velocity = velocity;
                 }
             }
-            // Decceleration on different platforms ground.collider.gameObject.name.Contains("Default")
+            // Decceleration on different platforms 
         }else if (grounded){
             if (currentPlatform == "default"){
                 if(rigidBody.velocity.x>0){

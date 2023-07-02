@@ -9,18 +9,17 @@ public class TextAnimateUI : MonoBehaviour
     private bool textState = true;
     public TextMeshProUGUI textObject;
     private string originalText;
-
-    // Start is called before the first frame update
+    
     void Start()
     {
         originalText = textObject.text;   
         textObject.text = "> " + originalText + " <";
     }
 
-    // Update is called once per frame
+    // Animate text
     void Update()
     {
-        counter += Time.deltaTime;
+        counter += Time.unscaledDeltaTime;
 
         if(counter>=1.0f){
             if(textState==true){

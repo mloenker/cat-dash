@@ -10,14 +10,13 @@ public class TextAnimate : MonoBehaviour
     public TextMeshPro textObject;
     private string originalText;
 
-    // Start is called before the first frame update
     void Start()
     {
         originalText = textObject.text;   
         textObject.text = "> " + originalText + " <";
     }
 
-    // Update is called once per frame
+    // Animate Text
     void Update()
     {
         counter += Time.deltaTime;

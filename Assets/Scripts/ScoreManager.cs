@@ -7,7 +7,7 @@ public class ScoreManager : MonoBehaviour
     public Transform player;
     public TextMeshPro scoreText;
     
-    private float highestPosition;
+    public float highestPosition;
 
     private void Start()
     {
@@ -18,8 +18,12 @@ public class ScoreManager : MonoBehaviour
     {
         if (player.position.y > highestPosition)
         {
-            highestPosition = player.position.y;
+            highestPosition = player.position.y; // update score
         }
-        scoreText.text = "SCORE: " + highestPosition.ToString("0");
+        scoreText.text = "SCORE: " + highestPosition.ToString("0"); // Update text
+    }
+
+    public int getScore(){
+        return (int) highestPosition;
     }
 }

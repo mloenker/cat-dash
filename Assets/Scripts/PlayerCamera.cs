@@ -8,7 +8,7 @@ public class PlayerCamera : MonoBehaviour
     public Transform target;
 
     private void LateUpdate(){
-        if (target.position.y > transform.position.y){
+        if (target.position.y > transform.position.y){ // move only upwards
             Vector3 newPosition = new Vector3(transform.position.x, target.position.y, transform.position.z);
             transform.position = newPosition; 
         }
