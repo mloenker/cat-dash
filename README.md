@@ -1,14 +1,25 @@
 # cat-dash
+**Game Download: https://www.mediafire.com/file/wg5hrgwm2e39xn7/CatDash.zip/file**
+
+## controls
+a & d/ leftarrow & rightarrow: move character/ select character
+
+space: jump/ start game
+
+alt+enter: fullscreen
+
 
 ## functionality
 - automatic platform generation
 - three different platforms with different functionalities
 - snow particles
-- animations for some objects and the cat
+- animations for some objects and cats
 - moving background
 - soundeffects and background music
 - screen wrap effect
 - start & game over menu
+- multiple characters
+- score system
 
 ## assets
 - 2D Platformer Winter https://assetstore.unity.com/packages/2d/environments/2d-platformer-winter-64239
